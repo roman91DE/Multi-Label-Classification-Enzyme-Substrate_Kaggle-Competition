@@ -5,7 +5,7 @@ PATH_TRAIN = "./data/train.csv"
 PATH_TEST = "./data/test.csv"
 
 DTYPES_FEATURES = {
-          "id": "str",
+          "id": "uint64",
           "fr_COO": "category",
           "fr_COO2": "category",
       }
@@ -29,6 +29,7 @@ def _load_data(datapath: str, dtypes: dict, drop_cols: list) -> pd.DataFrame:
   return pd.read_csv(
       filepath_or_buffer=datapath,
       dtype=dtypes,
+      index_col="id"
     ).drop(columns=drop_cols, axis=1)
 
 
