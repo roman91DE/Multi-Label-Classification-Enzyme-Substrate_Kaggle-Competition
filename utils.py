@@ -1,4 +1,5 @@
 import pandas as pd
+from dataclasses import dataclass
 from functools import partial
 
 PATH_TRAIN = "./data/train.csv"
@@ -35,3 +36,51 @@ def _load_data(datapath: str, dtypes: dict, drop_cols: list) -> pd.DataFrame:
 
 GetTrainDF = partial(_load_data, datapath=PATH_TRAIN, dtypes=dict(**DTYPES_TARGETS, **DTYPES_FEATURES), drop_cols=DROP_COLS)
 GetTestDF = partial(_load_data, datapath=PATH_TEST, dtypes=DTYPES_FEATURES, drop_cols=[])
+
+
+@dataclass
+class ClassificationScore:
+    TP: int = 0 # True Positive
+    FP: int = 0 # False Positive
+    TN: int = 0 # True Negative
+    FN: int = 0 # False Negative
+
+    def num_cases(self):
+        return self.TP + self.FP + self.TN + self.FN
+    
+    def accuracy(self):
+        """how many cases were correctly classified"""
+        return (self.TP + self.TN) / self.num_cases()
+    
+    def precision(self):
+        """how many positive predictions were correct"""
+        return self.TP / (self.TP + self.FP)
+
+    def specificity(self):
+        """how many negative cases were correctly classified"""
+        return self.TN / (self.TN + self.FP)
+    
+    def recall(self):
+        """how many positive cases were correctly classified"""
+        return self.TP / (self.TP + self.FN)
+    
+    def f1(self):
+        """harmonic mean of precision and recall"""
+        return 2 * self.precision() * self.recall() / (self.precision() + self.recall())
+
+    def roc_auc(self):
+        """Receiver Operating Characteristic Area Under the Curve"""
+        return (self.TP / (self.TP + self.FN)) - (self.FP / (self.FP + self.TN))
+    
+def get_ClassificationScore(true_vals, pred_vals) -> ClassificationScore:
+    cs = ClassificationScore()
+    for target, prediction in zip(true_vals, pred_vals):
+        if target == 1 and prediction == 1:
+            cs.TP += 1
+        elif target == 0 and prediction == 0:
+            cs.TN += 1
+        elif target == 0 and prediction == 1:
+            cs.FP += 1
+        elif target == 1 and prediction == 0:
+            cs.FN += 1
+    return cs
